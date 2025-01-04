@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es5",  // or es6 if you prefer
+    "lib": ["dom", "esnext"],
+    "jsx": "react-jsx",  // Use react-jsx for React 17+
+    "moduleResolution": "node",
+    "strict": true,  // Enable strict typing
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["react", "react-dom", "react-plotly.js"],
+    "paths": {
+      "baseUrl": ["."], 
+      "@components/*": ["./src/components/*"],
+      "@assets/*": ["./src/assets/*"]
+    }
+  },
+  "include": ["src/**/*", "postcss.config.js"],
+  "exclude": ["node_modules"]
+}
