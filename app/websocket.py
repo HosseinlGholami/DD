@@ -1,9 +1,12 @@
 from flask_socketio import emit
-from multiprocessing import Queue
-# Initialize the queue for communication
-ws_queue = Queue()
+from flask import current_app
 
-def register_websocket_events(socketio):
+# Initialize the queue for communication
+
+def register_websocket_events(socketio,shared_resources):
+
+    ws_queue = shared_resources.queues["ws_queue"]
+
     # WebSocket event to handle new connections
     @socketio.on('connect')
     def handle_connect():

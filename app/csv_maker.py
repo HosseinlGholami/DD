@@ -1,7 +1,7 @@
 from random import randrange
 import threading
 
-import json, os
+import json, os , csv
 
 
 from multiprocessing import Queue,Value
@@ -13,28 +13,33 @@ MIN_ANGLE_DEGREE = 135
 MAX_ANGLE_DEGREE = 180
 MIN_ACCEPTABLE_DISTANCE = 20
 
-def fetch_lidar_data(csv_queue: Queue, last_position):
-    data = dict()
-    data['address'] = "LDR"
+def fetch_lidar_data(csv_queue: Queue):
     # Initialize Lidar instance
     def data_callback(distances, angles, confidences, timestamp):
         # close the angel:
-        important_angles = angles[(angles > degree_to_radians(MIN_ANGLE_DEGREE)) & (angles < degree_to_radians(MAX_ANGLE_DEGREE))]
-        important_distances = distances[(angles > degree_to_radians(MIN_ANGLE_DEGREE)) & (angles < degree_to_radians(MAX_ANGLE_DEGREE))]
+        mask = (angles > degree_to_radians(MIN_ANGLE_DEGREE)) & (angles < degree_to_radians(MAX_ANGLE_DEGREE))
+        important_angles = angles[mask]
+        important_distances = distances[mask]
+        important_confidences = confidences[mask]
 
         # remove close point since it cannot read it and it's noise:
-        important_angles = important_angles[important_distances > MIN_ACCEPTABLE_DISTANCE]
-        important_distances = important_distances[important_distances > MIN_ACCEPTABLE_DISTANCE]
-
+        mask = important_distances > MIN_ACCEPTABLE_DISTANCE
+        important_angles = important_angles[mask]
+        important_distances = important_distances[mask]
+        important_confidences = important_confidences[mask]
+        
         if len(important_distances):
             # change polar to cartesian
             x, z = pol2cart(important_distances, important_angles)
+            data = dict()
+            data['address'] = "LDR"
 
             # send event to csv_maker_handler
             data['x']= x
             data['z'] = z
-            if last_position.value >= 0:
-                send_event_process(csv_queue,"DV",data)
+            data['conf'] = important_confidences
+
+            send_event_process(csv_queue,"DV",data)
 
 
     # Main Execution
@@ -50,39 +55,58 @@ def fetch_lidar_data(csv_queue: Queue, last_position):
 def csv_maker_handler(data,ws_queue,bg_queue,point_cloud,last_position):
     if  data['address'] == ReportAddress.REPORT_FORWARD_POSITION.value:
         last_position.value = data['data']
-        print(f"POS DATA : {last_position.value}")
-    elif data['address'] == ReportAddress.REPORT_REACH_END.value:
-        # save the csv file:
-        pass
-        # with open("A.json", 'w') as json_file:
-        #     json.dump(point_cloud, json_file, indent=4) 
-    # elif address == "LDR":
-    #     X = data["x"]
-    #     y =last_position.value
-    #     Z = data["z"]
-    #     # print(f"LIDAR DATA: X:{X} Y:{y} Z:{Z}")
-    #     for i in range(len(X)):
-    #         send_point_cloud_to_front_app(ws_queue,X[i],y,Z[i])
-    #     # send_point_cloud_to_front_app(ws_queue,randrange(1,100,1),randrange(1,100,1),randrange(1,100,1))
-    #     point_cloud[last_position.value].append((X.tolist(),Z.tolist()))
+    elif data['address'] == "LDR":
+        # print(f" {last_position.value} ==>  {len(data['x'])} - {len(data['z'])} - {len(data['conf'])} ")        
+        for index in range(len(data['x'])):
+            value = {
+                "x": data['x'][index],
+                "y": last_position.value,
+                "z": data['z'][index],
+                "conf": data['conf'][index]
+            }
+            # save to list for file saveing 
+            point_cloud.append(value)
+            # send to front application
+            send_socket_to_front_app(ws_queue, cmd="point-cloud",data=value)
+
     #     # send_event_process(bg_queue,"CSV",data)
+    elif data['address'] == ReportAddress.REPORT_REACH_END.value:
+        # save the csv file:        
+        with open('temp.csv', mode='w', newline='') as file:
+            writer = csv.writer(file)
+            # Write the header
+            writer.writerow(['x', 'y', 'z','conf'])
+            # Write the data
+            for item in point_cloud:
+                writer.writerow([item['x'], item['y'], item['z'],item['conf']])
+
+        # send event to kill the process since the csv file is created
+        send_event_process(bg_queue,SRC.CSV_MAS.value,data)
+
+    # elif data['address'] == ReportAddress.REPORT_PROCESS_END.value:
+        # send event to bg to kill the process
+        # send_event_process(bg_queue,SRC.CSV_MAS.value,data)
+
     else:
         print(f"unhandle command on csv maker {data} , last_position {last_position.value} ")
         pass
 
 
 # thread for create the csv file of lidar
-def csv_handler(csv_queue: Queue, ws_queue: Queue, bg_queue: Queue):
-    point_cloud = dict()
+def csv_handler(shared_resources):
+    csv_queue = shared_resources.queues["csv_queue"]
+    ws_queue = shared_resources.queues["ws_queue"]
+    bg_queue = shared_resources.queues["bg_queue"]
+
+    point_cloud = list()
     last_position = Value('i', -1)
 
     # clear the queues
-    # clear_queue(csv_queue)
+    shared_resources.clear_queue("csv_queue")
     last_position.value = -1
-    print(f"START_THE_PROCESS XX{last_position.value}XX")
 
     # Start the data fetching in a separate thread
-    # threading.Thread(target=fetch_lidar_data, args=(csv_queue,last_position), daemon=True).start()
+    threading.Thread(target=fetch_lidar_data, args=(csv_queue,), daemon=True).start()
 
     #create thread for read lidar data till end of the movment
     while True:

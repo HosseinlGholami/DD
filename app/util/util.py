@@ -15,7 +15,7 @@ class BgCommands(Enum):
 class PacketType(Enum):
     DD_HEARTBEAT_PACKET=0 # DONE
     DD_PING_PONG_PACKET=1
-    DD_REPORT_PACKET=2  
+    DD_REPORT_PACKET=2  #DONE
     DD_COMMAND_PACKET=3    
     DD_GET_PARAM_PACKET=4 #DONE 
     DD_SET_PARAM_PACKET=5 #DONE
@@ -35,6 +35,8 @@ class SRC(Enum):
     SER_MAS=3
     BGR_MAS=4
     API_MAS=5
+    CSV_MAS=6
+    LDR_MAS=7
 
 
 class ReportAddress(Enum):

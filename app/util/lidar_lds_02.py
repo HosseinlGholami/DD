@@ -142,6 +142,9 @@ class Lidar:
                 # Pass data to callback, if provided
                 if self.callback:
                     self.callback(filtered_distances, filtered_angles, filtered_confidences, timestamp)
+                    total_angles = np.array([])
+                    total_distances = np.array([])
+                    total_confidences = np.array([])
 
 
 def degree_to_radians(degree):

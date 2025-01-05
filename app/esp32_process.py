@@ -51,10 +51,10 @@ def process_msg(obj,serial_client,shared_resources):
     
     # ==============    RELATED TO PROCESS    ==============
     #  1 : from command form api task to send uart start motor
-    elif obj["src"] == SRC.API_MAS.value and cmd_type == PacketType.DD_COMMAND_PACKET.value  and obj["data"]["address"] ==CommandType.UART_START_MOTOR.value:
+    elif obj["src"] == SRC.API_MAS.value and cmd_type == PacketType.DD_COMMAND_PACKET.value  and obj["data"]["address"] ==CommandType.UART_START_SCAN_NRM.value:
         serial_client.send_packet(obj["data"]["type"], obj["data"]["address"], obj["data"]["data"])
     # 2 :related to ack of command packet for starting
-    elif obj["src"] == SRC.ESP_RCV.value and cmd_type == PacketType.DD_COMMAND_PACKET.value and obj["data"]["address"] ==CommandType.UART_START_MOTOR.value:
+    elif obj["src"] == SRC.ESP_RCV.value and cmd_type == PacketType.DD_COMMAND_PACKET.value and obj["data"]["address"] ==CommandType.UART_START_SCAN_NRM.value:
         send_event_process(bg_queue,obj["src"],obj["data"])
     #  3 : get data from esp32 
     elif obj["src"]== SRC.ESP_RCV.value and cmd_type == PacketType.DD_REPORT_PACKET.value:
