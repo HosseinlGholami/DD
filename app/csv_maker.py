@@ -1,7 +1,7 @@
 from random import randrange
 import threading
 
-import json
+import json, os
 
 
 from multiprocessing import Queue,Value
@@ -39,39 +39,35 @@ def fetch_lidar_data(csv_queue: Queue, last_position):
 
     # Main Execution
     LIDAR_PORT = os.getenv("LIDAR_SERIAL")
+    print(f"===>>>  LIDAR_SERIAL:  LIDAR_PORT --> {LIDAR_PORT} ")
+
     lidar = Lidar(port=LIDAR_PORT, min_confidence_level=200, callback=data_callback)
     while True:
         # it's blocking and runs callbacks
         lidar.get_lidar_packets()
 
 
-
-
 def csv_maker_handler(data,ws_queue,bg_queue,point_cloud,last_position):
-    address = data['address']
-    if  address== ReportAddress.REPORT_FORWARD_POSITION.value:
+    if  data['address'] == ReportAddress.REPORT_FORWARD_POSITION.value:
         last_position.value = data['data']
-        point_cloud[last_position.value]=[]
-        # print(f"POS DATA : {last_position.value}")
-
-    elif address == ReportAddress.REPORT_PROCESS_END.value:
+        print(f"POS DATA : {last_position.value}")
+    elif data['address'] == ReportAddress.REPORT_REACH_END.value:
         # save the csv file:
-        with open("A.json", 'w') as json_file:
-            json.dump(point_cloud, json_file, indent=4) 
-        send_event_process(bg_queue,"CSV",data)
-    elif address == "LDR":
-        X = data["x"]
-        y =last_position.value
-        Z = data["z"]
-        # print(f"LIDAR DATA: X:{X} Y:{y} Z:{Z}")
-        # for i in range(len(X)):
-            # send_point_cloud_to_front_app(ws_queue,X[i],y,Z[i])
-        # send_point_cloud_to_front_app(ws_queue,randrange(1,100,1),randrange(1,100,1),randrange(1,100,1))
-        point_cloud[last_position.value].append((X.tolist(),Z.tolist()))
-
-        # send_event_process(bg_queue,"CSV",data)
+        pass
+        # with open("A.json", 'w') as json_file:
+        #     json.dump(point_cloud, json_file, indent=4) 
+    # elif address == "LDR":
+    #     X = data["x"]
+    #     y =last_position.value
+    #     Z = data["z"]
+    #     # print(f"LIDAR DATA: X:{X} Y:{y} Z:{Z}")
+    #     for i in range(len(X)):
+    #         send_point_cloud_to_front_app(ws_queue,X[i],y,Z[i])
+    #     # send_point_cloud_to_front_app(ws_queue,randrange(1,100,1),randrange(1,100,1),randrange(1,100,1))
+    #     point_cloud[last_position.value].append((X.tolist(),Z.tolist()))
+    #     # send_event_process(bg_queue,"CSV",data)
     else:
-        # point_cloud[last_position.value] = []
+        print(f"unhandle command on csv maker {data} , last_position {last_position.value} ")
         pass
 
 
@@ -86,7 +82,7 @@ def csv_handler(csv_queue: Queue, ws_queue: Queue, bg_queue: Queue):
     print(f"START_THE_PROCESS XX{last_position.value}XX")
 
     # Start the data fetching in a separate thread
-    threading.Thread(target=fetch_lidar_data, args=(csv_queue,last_position), daemon=True).start()
+    # threading.Thread(target=fetch_lidar_data, args=(csv_queue,last_position), daemon=True).start()
 
     #create thread for read lidar data till end of the movment
     while True:

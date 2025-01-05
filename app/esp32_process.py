@@ -59,10 +59,8 @@ def process_msg(obj,serial_client,shared_resources):
     #  3 : get data from esp32 
     elif obj["src"]== SRC.ESP_RCV.value and cmd_type == PacketType.DD_REPORT_PACKET.value:
         send_event_process(bg_queue,obj["src"],obj["data"])
-
-
     else:
-        print(f"wrong condition: src: {obj["src"]} data: {obj["data"]}")
+        print(f"wrong condition:  obj: {obj}")
             
 
 

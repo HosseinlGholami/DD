@@ -29,14 +29,14 @@ def process_msg(obj, rabbitmq_client,shared_resources,DEVICE_ID):
             esp32_queue = shared_resources.queues["esp32_queue"]
             send_event_process(esp32_queue,obj["src"],obj["data"])
         else:
-            print(f"wrong condition:  src: {obj["src"]} data: {obj["data"]}")
+            print(f"wrong condition:  obj: {obj}")
             
     # handle command reviced from esp32 send what you get from esp32
     elif obj["src"] == SRC.ESP_RCV.value:
         TOPIC = f".DD.hub.{DEVICE_ID}"
         rabbitmq_client.send_message(TOPIC,obj["data"])
     else:
-        print(f"wrong condition:  src: {obj["src"]} data: {obj["data"]}")
+        print(f"wrong condition:  obj: {obj}")
 
 
 # the process

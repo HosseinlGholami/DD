@@ -10,8 +10,6 @@ from enum import Enum
 class BgCommands(Enum):
     START_PROCESS =0
     STOP_PROCESS =1
-    TAKE_PICTURE_ITEM =2
-    TAKE_PICTURE_CALIB =2
 
 
 class PacketType(Enum):
@@ -25,9 +23,10 @@ class PacketType(Enum):
 
 
 class CommandType(Enum):
-    UART_START_MOTOR = 0 
-    UART_STOP_MOTOR = 0 
-    
+    UART_START_SCAN_NRM = 0 
+    UART_START_SCAN_DWAY = 1 
+    UART_GO_HOME = 2
+    UART_GO_END =3
 
 class SRC(Enum):
     SRV_RCV=0
