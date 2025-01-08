@@ -1,10 +1,10 @@
-from flask import Blueprint,request, jsonify , current_app
+from flask import Blueprint,request, send_file, jsonify , current_app
 from app.util.util import *
 
 # Create a Blueprint for the API
 api_blueprint = Blueprint('api', __name__)
 
-# API route to start the dimension detection (example)
+# API route to start the dimension detection 
 @api_blueprint.route('/start', methods=['POST'])
 def start_detection():
     # 1- handle the request    
@@ -26,7 +26,7 @@ def start_detection():
     # Logic to start your background process or task
     return jsonify({"message": f"Dimension detection started on barcode {barcode}"}), 200
 
-# API route to stop the dimension detection (if needed)
+# API route to stop the dimension detection
 @api_blueprint.route('/stop', methods=['POST'])
 def stop_detection():
     working_mode = current_app.config['shared_resources'].working_mode.value
@@ -42,13 +42,20 @@ def stop_detection():
     # Logic to stop the background process
     return jsonify({"message": "Dimension detection stopped"}), 200
 
-# Example of getting some status
+# API route to get the dimension detection status 
 @api_blueprint.route('/status', methods=['GET'])
 def get_status():
     # Logic to return status or information from the process
     working_mode = current_app.config['shared_resources'].working_mode.value
     return jsonify({"status": f"Running --> {working_mode}"}), 200
 
+# API route to get the taken picture 
+@api_blueprint.route('/img-get', methods=['GET'])
+def img_get():
+    try:
+        return send_file("../temp.jpg", mimetype='image/jpeg', as_attachment = False)
+    except:
+        return jsonify({"error":"File not found"}),404
 
 # # TODO: IMAGE CALLIBRATION API
 @api_blueprint.route('/img-calib', methods=['GET'])

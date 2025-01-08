@@ -24,7 +24,7 @@ def process_msg(src , data, shared_resources,api_clinet):
         # start 
         send_event_process(camera_queue,SRC.BGR_MAS.value,BgCommands.TAKE_PICTURE_ITEM.value)
         # add a dummy time for take picture first then goes for lidar flow
-        time.sleep(0.5)
+        time.sleep(1)
         # 2- send start command to esp32 STARTPROCESS COMMAND form api
         data_dict = create_data_dict(PacketType.DD_COMMAND_PACKET.value,CommandType.UART_START_SCAN_NRM.value,-1)
         send_event_process(esp32_queue,src,data_dict)
@@ -35,6 +35,8 @@ def process_msg(src , data, shared_resources,api_clinet):
     ####################################################################################################
     elif src == SRC.CAM_MAS.value and data =="ITEM_RDY": 
         # pictue is taken we have to kill the process and call api
+        send_socket_to_front_app(ws_queue, cmd="img_ready")
+        
         pass
     elif src == SRC.CAM_MAS.value and data =="CALIB_RDY": 
         # pictue is taken we have to kill the process and call api
