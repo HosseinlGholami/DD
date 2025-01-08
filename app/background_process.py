@@ -5,6 +5,7 @@ from app.camera_maker import *
 from app.csv_maker import *
 from app.util.util import *
 
+from app.util.strip_controler import *
 
 
 def process_msg(src , data, shared_resources,api_clinet):
@@ -20,10 +21,11 @@ def process_msg(src , data, shared_resources,api_clinet):
     ####################################################################################################
     if src== SRC.API_MAS.value and data == BgCommands.START_PROCESS.value:
         print("SEND BgCommands.START_PROCESS.value")
-        # 1- start camera process to start taking picture
-        start_the_process(shared_resources,"camera_process")
-        # start 
+        # 1- send event to camera task to takign the picture
         send_event_process(camera_queue,SRC.BGR_MAS.value,BgCommands.TAKE_PICTURE_ITEM.value)
+        # 1-1 do flush
+        do_flush()
+
         # add a dummy time for take picture first then goes for lidar flow
         time.sleep(1)
         # TODO START LIDAR
@@ -36,20 +38,17 @@ def process_msg(src , data, shared_resources,api_clinet):
     #############################             CAMERA FLOW          ######################################
     ####################################################################################################
     elif src == SRC.CAM_MAS.value and data =="ITEM_RDY": 
-        # pictue is taken we have to kill the process and call api
+        # pictue is taken we have to call api and inform the front application
         # 1- send img_ready to fetch the image url form /img-get api
         send_socket_to_front_app(ws_queue, cmd="img_ready")
         # 2- call the api async
         async_api_call(api_clinet, "send_image", bg_queue, barcode)
-        # 3- kill the camera process
-        kill_the_process(shared_resources, "camera_process",camera_handler)   
+
 
     elif src == SRC.CAM_MAS.value and data =="CALIB_RDY": 
-        # pictue is taken we have to kill the process and call api
+        # pictue is taken we have to call api
         # 1- api call async
         async_api_call(api_clinet, "camera_calibration", bg_queue, barcode)
-        # 2- kill the camera process
-        kill_the_process(shared_resources, "camera_process",camera_handler)   
 
 
     ####################################################################################################
@@ -96,8 +95,12 @@ def process_msg(src , data, shared_resources,api_clinet):
     # got result from api
     elif src == SRC.API_CL_MAS.value:
         if data["method_name"] == "send_image":
+            print(f"image API RES: {data}")
             send_socket_to_front_app(ws_queue, cmd="send_image", data=data)
+            # XXX- stop the flush
+            end_flush()
         elif data["method_name"] == "send_point_cloud":
+            print(f"point clousd: API RES: {data}")
             send_socket_to_front_app(ws_queue, cmd="send_point_cloud", data=data)
         elif data["method_name"] == "camera_calibration":
             print("callibration done ")
@@ -109,6 +112,7 @@ def process_msg(src , data, shared_resources,api_clinet):
     #############################             STOP FLOW           ######################################
     ####################################################################################################
     elif src== SRC.API_MAS.value and data == BgCommands.STOP_PROCESS.value:
+        kill_the_process(shared_resources, "csv_process",csv_handler)   
         # 1- send stop command to from api to kill the csv process
         print("SEND STOP COMMAND TO STOP THE CSV TASK")
         shared_resources.working_mode.value = ""
@@ -121,15 +125,6 @@ def process_msg(src , data, shared_resources,api_clinet):
         # TODO
 
 
-    ####################################################################################################
-    #############################             IMAGE CALIBRATION FLOW           #########################
-    ####################################################################################################
-
-
-    ####################################################################################################
-    #############################             GROUND CALIBRATION FLOW           ########################
-    ####################################################################################################
-
 
     else:
         print(f"unhandle command src:{get_name(SRC,src)},data:{data} ")
@@ -139,6 +134,7 @@ def process_msg(src , data, shared_resources,api_clinet):
 def bg_controller(shared_resources):
     shared_resources.processes["csv_process"] = Process(target=csv_handler, args=(shared_resources,))
     shared_resources.processes["camera_process"] = Process(target=camera_handler, args=(shared_resources,))
+    start_the_process(shared_resources,"camera_process")
     api_clinet = APIClient()
     while True:
         obj = shared_resources.queues["bg_queue"].get()

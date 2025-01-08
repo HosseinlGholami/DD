@@ -61,10 +61,7 @@ def img_get():
 # TODO: IMAGE CALLIBRATION API
 @api_blueprint.route('/img-calib', methods=['GET'])
 def img_calib():
-    shared_resources = current_app.config['shared_resources']
-    # start the process camera
-    start_the_process(shared_resources,"camera_process")
-    
+    shared_resources = current_app.config['shared_resources']    
     time.sleep(3)
     
     # send event to take picrure 

@@ -6,6 +6,8 @@ from app.util.image_capture import capture_image
 
 
 def camera_maker_handler(obj,bg_queue):
+    print(f"camera: MSG -->{obj}PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP")
+
     if obj["src"] == SRC.BGR_MAS.value and obj["data"] == BgCommands.TAKE_PICTURE_ITEM.value:
         capture_image()
         send_event_process(bg_queue,SRC.CAM_MAS.value,"ITEM_RDY")
@@ -19,6 +21,8 @@ def camera_maker_handler(obj,bg_queue):
 def camera_handler(shared_resources):
     camera_queue = shared_resources.queues["camera_queue"]
     bg_queue = shared_resources.queues["bg_queue"]
+
+    print(f"camera: CERERTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTcamera_queue.qsize:{camera_queue.qsize()}")
 
     # clear the queues
     shared_resources.clear_queue("camera_queue")

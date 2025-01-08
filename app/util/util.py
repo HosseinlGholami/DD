@@ -77,7 +77,7 @@ def start_the_process(shared_resources, process_name):
     if not shared_resources.processes[process_name].is_alive():
         shared_resources.processes[process_name].start()
     else:
-        print("the process is still alive!")
+        print(f"\n\n\n\n{process_name} the process is still alive!")
 
 
 def kill_the_process(shared_resources, process_name,task_handler):
@@ -89,6 +89,8 @@ def kill_the_process(shared_resources, process_name,task_handler):
         print(f"{process_name} terminated.")
         shared_resources.processes[process_name] = Process(target=task_handler, args=(shared_resources,))
         gc.collect()
+    else:
+        print(f"\n\n\n\nab is ghat {process_name}")
 
     
 def run_api_call(api_client,method_name ,method, queue, *args, **kwargs):
