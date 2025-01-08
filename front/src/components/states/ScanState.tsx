@@ -1,5 +1,5 @@
 // src/pages/HomePage.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import DimensionPlot from "../DimensionPlot";
 import useWebSocket from "../../hooks/useWebSocket";
 import QRCodeCard from "../ui/QRCodeCard";
@@ -14,7 +14,6 @@ import Skeleton from "../ui/Skeleton";
 import useStore from "../../store/store";
 import { startScan, stopScan } from "../../network/localApi";
 import { useScanner } from "../../hooks/useScanner";
-import WS_URL from "../../network/wsUrl";
 import { LOCAL_API_URL } from "../../network/apiUrl";
 
 interface PlotData {
@@ -26,6 +25,7 @@ interface PlotData {
 const ScanState: React.FC = () => {
   const { plotData, setPlotData } = useWebSocket(LOCAL_API_URL); // Update to your WebSocket URL
   //   const [command, setCommand] = React.useState<string>("");
+  const [imageSrc, setImageSrc] = React.useState<string>("");
   const [loading, setLoading] = React.useState<boolean>(true);
 
   useScanner(async (barcode: string) => {
@@ -53,6 +53,29 @@ const ScanState: React.FC = () => {
       }
     }
   });
+
+  const fetchImage = async () => {
+    try {
+      const response = await fetch(`${LOCAL_API_URL}/img-get`);
+      if(!response.ok) {
+        console.log("Cannot get image.");
+      } else {
+        const blob = await response.blob();
+        const imageURL = URL.createObjectURL(blob);
+        setImageSrc(imageURL);
+      }
+    } catch (error) {
+      console.log("Error fetching image ...")
+    }
+  }
+
+  useEffect(() => {
+    if (useStore.getState().command === "img_ready") {
+      fetchImage();
+    } else if (useStore.getState().command === "end_scan") {
+      setLoading(false);
+    }
+  }, [useStore.getState().command]);
 
   return (
     <div className="tw-p-4 tw-grid tw-grid-rows-[auto,1fr] tw-gap-8">
@@ -94,11 +117,10 @@ const ScanState: React.FC = () => {
         ) : (
           <InfoCard title="مشخصات کالا" className="tw-col-span-1">
             <div className="tw-grid tw-grid-rows-5 tw-gap-2">
-              <div>طول: ***</div>
-              <div>عرض: ***</div>
-              <div>ارتفاع: ***</div>
-              <div>وزن: ***</div>
-              <div>سایر کالا: ***</div>
+              <div>طول: {useStore.getState().result.l} mm</div>
+              <div>عرض: {useStore.getState().result.w} mm</div>
+              <div>ارتفاع: {useStore.getState().result.h} mm</div>
+              <div>وزن: {useStore.getState().result.weight} kg</div>
             </div>
           </InfoCard>
         )}
@@ -113,7 +135,11 @@ const ScanState: React.FC = () => {
             <Skeleton className="tw-h-48 tw-bg-gray-100 tw-rounded-md tw-flex tw-items-center tw-justify-center" />
           ) : (
             <div className="tw-h-48 tw-bg-gray-100 tw-rounded-md tw-flex tw-items-center tw-justify-center">
-              Image Place Holder
+              <img 
+                src={imageSrc}
+                alt="Scanned Product"
+                className="tw-h-full tw-w-full tw-rounded-md tw-object-contain"
+              />
             </div>
           )}
         </InfoCard>

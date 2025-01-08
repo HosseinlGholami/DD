@@ -12,8 +12,10 @@ class APIClient:
         self.lidar_url = "https://robotics.digikala.com/dd/api/products/calculate-with-point-cloud/v0/"
         self.calibration_url = "https://robotics.digikala.com/dd/api/products/camera-calibration/v0/"
         self.device_id = os.getenv("DEVICE_ID")
+        self.timeout= 50
 
     def send_image(self, barcode):
+        print("===========send_image======================")
         with open("temp.jpg", 'rb') as image_file:
             files = {'image_file': image_file}
             headers = {
@@ -23,14 +25,21 @@ class APIClient:
                 'device_id': self.device_id,
                 'barcode': barcode
             }
-            response = requests.post(self.image_url, files=files, data=data, headers=headers)
+            response = requests.post(self.image_url, files=files, data=data, headers=headers,timeout=self.timeout)
 
+        print(f"send_image:==========={response}======================")
         if response.status_code == 201:
             return response.json()
         else:
-            response.raise_for_status()
+            response = {
+                "pc_width": 0,
+                "pc_height": 0,
+                "pc_length": 0,
+                "weight": 0
+            }
 
     def send_point_cloud(self, barcode):
+        print("===========send_point_cloud======================")
         with open("temp.csv", 'rb') as csv_file:
             files = {'point_cloud_file': csv_file}
             headers = {
@@ -40,14 +49,21 @@ class APIClient:
                 'device_id': self.device_id,
                 'barcode': barcode
             }
-            response = requests.post(self.lidar_url, files=files, data=data, headers=headers)
+            response = requests.post(self.lidar_url, files=files, data=data, headers=headers,timeout=self.timeout)
+        print(f"send_point_cloud:==========={response}======================")
 
         if response.status_code == 201:
             return response.json()
         else:
-            response.raise_for_status()
+            response = {
+                "image_width": 0,
+                "image_height": 0,
+                "image_length": 0,
+                "weight": 0
+            }
 
     def camera_calibration(self):
+        print("===========camera_calibration======================")
         with open("temp.jpg", 'rb') as image_file:
             files = {'calibrate_image_file': image_file}
             headers = {
@@ -56,7 +72,8 @@ class APIClient:
             data = {
                 'device_id': self.device_id,
             }
-            response = requests.post(self.calibration_url, files=files, data=data, headers=headers)
+            response = requests.post(self.calibration_url, files=files, data=data, headers=headers,timeout=self.timeout)
+        print(f"camera_calibration:==========={response}======================")
 
         if response.status_code == 201:
             return response.json()

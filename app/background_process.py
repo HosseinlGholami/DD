@@ -6,6 +6,7 @@ from app.csv_maker import *
 from app.util.util import *
 
 from app.util.strip_controler import *
+from app.util.gpio_conteoller import *
 
 
 def process_msg(src , data, shared_resources,api_clinet):
@@ -21,12 +22,18 @@ def process_msg(src , data, shared_resources,api_clinet):
     ####################################################################################################
     if src== SRC.API_MAS.value and data == BgCommands.START_PROCESS.value:
         print("SEND BgCommands.START_PROCESS.value")
+        # 0- send start scan
+        send_socket_to_front_app(ws_queue, cmd="start_scan")
+        
         # 1- send event to camera task to takign the picture
         send_event_process(camera_queue,SRC.BGR_MAS.value,BgCommands.TAKE_PICTURE_ITEM.value)
         # 1-1 do flush
         do_flush()
 
         # add a dummy time for take picture first then goes for lidar flow
+        #2-0: start the lidar
+        lidar_controll(True)
+        
         time.sleep(1)
         # TODO START LIDAR
         # 2- send start command to esp32 STARTPROCESS COMMAND form api
@@ -61,7 +68,6 @@ def process_msg(src , data, shared_resources,api_clinet):
     # 1-2 motor reached home place
     elif src== SRC.ESP_RCV.value and data["type"] == PacketType.DD_REPORT_PACKET.value  and  data["address"] == ReportAddress.REPORT_REACH_HOME.value:
         print(f"ReportAddress.REPORT_REACH_HOME.value ===>data-raw{data}")
-        send_socket_to_front_app(ws_queue, cmd="start_scan")
     # 1-3 motor send fpos and we send it to csv task
     elif src== SRC.ESP_RCV.value and data["type"] == PacketType.DD_REPORT_PACKET.value  and  data["address"] == ReportAddress.REPORT_FORWARD_POSITION.value:
         # print(f"ReportAddress.REPORT_FORWARD_POSITION.value ===>data-raw{data}")
@@ -70,11 +76,12 @@ def process_msg(src , data, shared_resources,api_clinet):
     elif src== SRC.ESP_RCV.value and data["type"] == PacketType.DD_REPORT_PACKET.value  and  data["address"] == ReportAddress.REPORT_REACH_END.value:
         print(f"ReportAddress.REPORT_REACH_END.value ===>data-raw{data}")
         send_event_process(csv_queue,src,data)
-        send_socket_to_front_app(ws_queue, cmd="end_scan")
     # 1-5 
     elif src== SRC.CSV_MAS.value:
         kill_the_process(shared_resources, "csv_process",csv_handler)   
-        #TODO: STOP LIDAR
+        
+        # STOP LIDAR
+        lidar_controll(False)
 
         # call the api async
         async_api_call(api_clinet, "send_point_cloud", bg_queue, barcode)
@@ -90,18 +97,42 @@ def process_msg(src , data, shared_resources,api_clinet):
         # send_event_process(csv_queue,src,data)
         # send_socket_to_front_app(ws_queue, cmd="process_end")
         # clear the working mode
-        shared_resources.working_mode.value = ""
 
     # got result from api
     elif src == SRC.API_CL_MAS.value:
-        if data["method_name"] == "send_image":
-            print(f"image API RES: {data}")
-            send_socket_to_front_app(ws_queue, cmd="send_image", data=data)
-            # XXX- stop the flush
-            end_flush()
-        elif data["method_name"] == "send_point_cloud":
+        print("SAAAAAAAAAAAAAAAKKKKKKKKKKKKKKKKKKKKKIIIIIIIIIIIINEEEEEEEEEEEEEE")
+        if data["method_name"] == "send_point_cloud":
             print(f"point clousd: API RES: {data}")
-            send_socket_to_front_app(ws_queue, cmd="send_point_cloud", data=data)
+            # it means it has correct response from the point cloud
+            # so we ignore the camera data 
+            # and send this response to front application
+            if data["pc_length"] > 0: 
+                report_data = {
+                    "w": round(data["pc_width"]   ,2),
+                    "h": round(data["pc_height"]  ,2),
+                    "l": round(data["pc_length"]  ,2),
+                    "weight": round(data["weight"],2),
+                }
+                end_flush()
+                send_socket_to_front_app(ws_queue, cmd="end_scan",data=[report_data])
+                shared_resources.working_mode.value = ""
+            else:
+                print("lidar cannot get data ---->>> WE HAVE TO WAIE TILL THE IMAGE API GET RESPONSE")
+        elif data["method_name"] == "send_image":
+            if shared_resources.working_mode.value != "":
+                print(f"image API RES: {data}")
+                report_data = {
+                    "w": round(data["image_width"] ,2),
+                    "h": round(data["image_height"],2),
+                    "l": round(data["image_length"],2),
+                    "weight": round(data["weight"] ,2),
+                }
+                end_flush()
+                send_socket_to_front_app(ws_queue, cmd="end_scan",data=[report_data])
+                shared_resources.working_mode.value = ""
+            else:
+                print(f"we ignore the image API but: {data}")
+
         elif data["method_name"] == "camera_calibration":
             print("callibration done ")
         else:
@@ -119,6 +150,7 @@ def process_msg(src , data, shared_resources,api_clinet):
 
         # data_dict = create_data_dict(PacketType.DD_COMMAND_PACKET.value,CommandType.UART_STOP_MOTOR.value,-1)
         # send_event_process(esp32_queue,src,data_dict)
+        
         #TODO: STOP LIDAR
 
         # 2- stop camera process to start taking picture
