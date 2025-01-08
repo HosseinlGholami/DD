@@ -54,5 +54,7 @@ def get_status():
 @api_blueprint.route('/img-calib', methods=['GET'])
 def img_calib():
     # Logic to return status or information from the process
-    working_mode = current_app.config['working_mode']
+    camera_queue = current_app.config['shared_resources'].queues["camera_queue"]
+    send_event_process(camera_queue,SRC.API_MAS.value,BgCommands.TAKE_PICTURE_ITEM.value)
+
     return jsonify({"status": f"Running --> {working_mode}"}), 200

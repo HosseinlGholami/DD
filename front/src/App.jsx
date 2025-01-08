@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import {MainLayout} from "./components/Layout";
-import {ThemeProvider} from "./theme";
+import MainPage from "./pages/MainPage";
+import { MainLayout } from "./components/layout/Layout";
+import { ThemeProvider } from "./theme";
 
 function App() {
 
@@ -11,7 +11,7 @@ function App() {
     const routes = [
       // Map additional routes based on user access permissions
       ...(true
-        ? [{ path: "/", element: <HomePage /> }]
+        ? [{ path: "/", element: <MainPage /> }]
         : []),
     ];
 
@@ -25,29 +25,25 @@ function App() {
     <Router>
       <ThemeProvider>
         <div dir='rtl'>
-        <MainLayout
-        navTitle='دستگاه اندازه‌گیری'
-        navBackButton
-        onNavBackClick={() => {
-            console.log('hello');
-        }}
-        breadCrumbItems={[
-            {
+          <MainLayout
+            navTitle='دستگاه اندازه‌گیری'
+            navBackButton
+            onNavBackClick={() => {}}
+            breadCrumbItems={[
+              {
                 label: 'خانه',
                 href: '/',
-            },
-            {
+              },
+              {
                 label: 'اندازه‌گیری',
                 href: '/',
-            },
-        ]}
-        >
-
-          {/* <NotifWebSocketComponent /> */}
-          <div>
-            <Routes>{generateRoutes()}</Routes>
-          </div>
-        </MainLayout>
+              },
+            ]}
+          >
+            <div>
+              <Routes>{generateRoutes()}</Routes>
+            </div>
+          </MainLayout>
         </div>
       </ThemeProvider>
     </Router>

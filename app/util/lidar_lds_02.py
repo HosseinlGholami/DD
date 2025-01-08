@@ -45,7 +45,7 @@ class Lidar:
         0x5a, 0x06, 0x4b, 0x9c, 0xd1, 0x7f, 0x32, 0xe5, 0xa8
     ]
 
-    def __init__(self, port,callback, min_confidence_level=200):
+    def __init__(self, port,callback, min_confidence_level=220):
         self.port = port
         self.serial = serial.Serial(port, baudrate=115200, timeout=1)
         self.min_confidence_level = min_confidence_level

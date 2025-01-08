@@ -2,7 +2,7 @@ import json , requests , os
 
 
 class APIClient:
-    def __init__(self,auth_token):
+    def __init__(self,auth_token=""):
         if auth_token:
             self.auth_token = auth_token
         else:
@@ -10,7 +10,7 @@ class APIClient:
         self.image_url       =  "https://robotics.digikala.com/dd/api/products/calculate-with-image/v0/"
         self.lidar_url       =  "https://robotics.digikala.com/dd/api/products/calculate-with-point-cloud/v0/"
         self.calibration_url =  "https://robotics.digikala.com/dd/api/products/camera-calibration/v0/"
-
+        self.device_id = os.getenv("DEVICE_ID")
 
     def send_image(self,barcode,device_id):
         # Open the image file in binary mode
@@ -31,28 +31,32 @@ class APIClient:
         else:
             response.raise_for_status()
 
-    def send_point_cloud(self,barcode,device_id):
+    def send_point_cloud(self,barcode):
         # Open the image file in binary mode
         with open("temp.csv", 'rb') as csv_file:
             files = {'point_cloud_file': csv_file}
+            print(self.auth_token)
             headers = {
                 'Authorization': f'Token {self.auth_token}'
             }
             data = {
-                'device_id': device_id,
+                'device_id': self.device_id,
                 'barcode': barcode
              }
             response = requests.post(self.lidar_url, files=files, data=data, headers=headers)
+        print(response.status_code)
+        print(response)
+        
 
         # Check the status of the response
         if response.status_code == 201:
             return response.json()
         else:
-            print(response.json())
+            print(response)
             response.raise_for_status()
 
 
-    def camera_calibration(self,barcode,device_id):
+    def camera_calibration(self):
         # Open the image file in binary mode
         with open("temp.jpg", 'rb') as image_file:
             files = {'calibrate_image_file': image_file}
@@ -60,8 +64,7 @@ class APIClient:
                 'Authorization': f'Token {self.auth_token}'
             }
             data = {
-                'device_id': device_id,
-                'barcode': barcode
+                'device_id': self.device_id,
              }
             response = requests.post(self.image_url, files=files, data=data, headers=headers)
 

@@ -1,15 +1,17 @@
+from enum import Enum
+import gc
+from multiprocessing import Process
 
 def send_socket_to_front_app(queue,cmd,data={}):
     meta = {'cmd':cmd,'data':data}  
     queue.put(meta)  
 
-from enum import Enum
-
-
 
 class BgCommands(Enum):
     START_PROCESS =0
     STOP_PROCESS =1
+    TAKE_PICTURE_ITEM=2
+    TAKE_PICTURE_CALIB=3    
 
 
 class PacketType(Enum):
@@ -37,6 +39,7 @@ class SRC(Enum):
     API_MAS=5
     CSV_MAS=6
     LDR_MAS=7
+    CAM_MAS=8
 
 
 class ReportAddress(Enum):
@@ -65,3 +68,24 @@ def create_data_dict(types,address,data):
 def send_event_process(queue,src,data_dict):
     data = {"src":src,"data":data_dict}
     queue.put(data)
+
+
+
+def start_the_process(shared_resources, process_name):
+    if not shared_resources.processes[process_name].is_alive():
+        shared_resources.processes[process_name].start()
+    else:
+        print("the process is still alive!")
+
+
+def kill_the_process(shared_resources, process_name,task_handler):
+    # kill the process
+    if shared_resources.processes[process_name].is_alive():
+        shared_resources.processes[process_name] .terminate()
+        shared_resources.processes[process_name] .join()  
+        shared_resources.processes[process_name]  = None
+        print(f"{process_name} terminated.")
+        shared_resources.processes[process_name] = Process(target=task_handler, args=(shared_resources,))
+        gc.collect()
+
+    

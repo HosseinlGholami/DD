@@ -23,7 +23,7 @@ def register_websocket_events(socketio,shared_resources):
             if not ws_queue.empty():
                 data = ws_queue.get()  # Get data from the queue
                 socketio.emit('meta', data)  # Emit to all WebSocket clients
-            socketio.sleep(0.01)  # Non-blocking sleep to avoid blocking the event loop
+            socketio.sleep(0.005)  # Non-blocking sleep to avoid blocking the event loop
 
     # Start the WebSocket data sender as a background task
     socketio.start_background_task(target=send_data_to_clients)
