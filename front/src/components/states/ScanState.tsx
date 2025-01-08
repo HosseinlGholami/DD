@@ -31,6 +31,7 @@ const ScanState: React.FC = () => {
   useScanner(async (barcode: string) => {
     if (barcode === "FINISH") {
       useStore.setState({ currentState: "ProductScan" });
+      setLoading(true);
     } else if (barcode === "PAUSE") {
       if (await stopScan()) {
         console.log("Scan paused");
@@ -46,6 +47,8 @@ const ScanState: React.FC = () => {
       if (await startScan(barcode)) {
         console.log("Scan restarted");
         setLoading(true);
+        setPlotData({x: [], y:[], z: []});
+        useStore.setState({command: "start_scan"})
         // TODO: show toast
       } else {
         console.error("Failed to restart scan");
@@ -81,24 +84,25 @@ const ScanState: React.FC = () => {
     <div className="tw-p-4 tw-grid tw-grid-rows-[auto,1fr] tw-gap-8">
       {!loading && (
         <div className="tw-grid tw-grid-cols-5 tw-gap-4 tw-justify-items-start">
-          <QRCodeCard qrValue="FINISH" text="پایان اسکن" icon={FinishIcon} />
           <QRCodeCard qrValue="RETRY" text="اسکن مجدد" icon={RetryIcon} />
-          <div className="tw-col-span-2" />
-          <QRCodeCard qrValue="DARK" text="حالت شب" icon={NightIcon} />
+          <div className="tw-col-span-3" />
+          {/* <QRCodeCard qrValue="DARK" text="حالت شب" icon={NightIcon} /> */}
+          <QRCodeCard qrValue="FINISH" text="پایان اسکن" icon={FinishIcon} />
         </div>
       )}
       {loading && (
         <div className="tw-grid tw-grid-cols-5 tw-gap-4 tw-justify-items-start">
+          
+
+          <div className="tw-col-span-4" />
+
+          {/* <QRCodeCard qrValue="DARK" text="حالت شب" icon={NightIcon} /> */}
           <QRCodeCard
             qrValue="PAUSE"
             text="توقف اسکن"
             icon={PauseIcon}
             color="#DE3730"
           />
-
-          <div className="tw-col-span-3" />
-
-          <QRCodeCard qrValue="DARK" text="حالت شب" icon={NightIcon} />
         </div>
       )}
       <div className="tw-grid tw-grid-cols-5 tw-gap-2 tw-grid-rows-1">
@@ -117,10 +121,10 @@ const ScanState: React.FC = () => {
         ) : (
           <InfoCard title="مشخصات کالا" className="tw-col-span-1">
             <div className="tw-grid tw-grid-rows-5 tw-gap-2">
-              <div>طول: {useStore.getState().result.l} mm</div>
-              <div>عرض: {useStore.getState().result.w} mm</div>
-              <div>ارتفاع: {useStore.getState().result.h} mm</div>
-              <div>وزن: {useStore.getState().result.weight} kg</div>
+              <div>طول: {useStore.getState().result.l} میلی متر</div>
+              <div>عرض: {useStore.getState().result.w} میلی متر</div>
+              <div>ارتفاع: {useStore.getState().result.h} میلی متر</div>
+              <div>وزن: {useStore.getState().result.weight} کیلوگرم</div>
             </div>
           </InfoCard>
         )}

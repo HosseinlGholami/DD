@@ -40,11 +40,11 @@ const useWebSocket = (url: string) => {
         });
 
         socket.on('meta', (newData: Partial<SocketData>) => {
-            console.log('Received new data:', newData);
+            // console.log('Received new data:', newData);
 
             if (newData.cmd === "start_scan") {
                 console.log('Scan started');
-                useStore.setState({command: "start_scan"})
+                // useStore.setState({command: "start_scan"})
                 setPlotData({ x: [], y: [], z: [] });
             } else if (newData.cmd === "end_scan") {
                 console.log('Scan ended');

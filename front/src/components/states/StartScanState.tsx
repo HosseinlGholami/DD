@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import QRCodeCard from "../ui/QRCodeCard";
 import Icon from "../ui/Icon";
 import { ReactComponent as PlayIcon } from "../../assets/icons/play.svg";
@@ -37,7 +37,9 @@ const MainPage: React.FC = () => {
     if (barcode === "HOK") {
       const barcode = useStore.getState().barcode;
       if (await startScan(barcode)) {
-        useStore.setState({ currentState: "Scan" });
+        useStore.setState({ currentState: "Scan",
+          command: "start_scan"
+         });
       } else {
         // TODO: show toast
         console.error("Failed to start scan");
@@ -52,10 +54,10 @@ const MainPage: React.FC = () => {
     <div className="tw-p-4 tw-grid tw-grid-rows-[auto,1fr]">
       <div className="tw-grid tw-grid-cols-5 tw-gap-4 tw-justify-items-start">
         <QRCodeCard qrValue="HOK" text="شروع اسکن" icon={PlayIcon} />
+        
+        <div className="tw-col-span-3" />
         <QRCodeCard qrValue="NOK" text="پاک کردن" icon={StopIcon} />
-        <div className="tw-col-span-2" />
-
-        <QRCodeCard qrValue="DARK" text="حالت شب" icon={NightIcon} />
+        {/* <QRCodeCard qrValue="DARK" text="حالت شب" icon={NightIcon} /> */}
       </div>
 
       <div className="tw-mt-8 tw-flex tw-flex-col tw-items-center">

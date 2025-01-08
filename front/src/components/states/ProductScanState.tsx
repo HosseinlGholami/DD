@@ -31,8 +31,8 @@ const ProductScanState: React.FC = () => {
   return (
     <div className="tw-p-4 tw-grid tw-grid-rows-[auto,1fr] tw-justify-items-center">
       <div className="tw-grid tw-grid-cols-5 tw-gap-4 tw-justify-items-start">
-        <div className="tw-col-span-4" />
-        <QRCodeCard qrValue="DARK" text="حالت شب" icon={NightIcon} />
+        <div className="tw-col-span-5" />
+        {/* <QRCodeCard qrValue="DARK" text="حالت شب" icon={NightIcon} /> */}
       </div>
 
       <div className="tw-mt-8 tw-flex tw-flex-col tw-items-center">
