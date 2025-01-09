@@ -60,8 +60,7 @@ def end_proc():
     bg_queue = current_app.config['shared_resources'].queues["bg_queue"]
     send_event_process(bg_queue,SRC.API_MAS.value,BgCommands.END_PROCESS.value)
 
-
-    print("SSSSSSSSSS")
+    print(f"SSSSSSSSSS--queue: {bg_queue.qsize()}---------alive:{current_app.config['shared_resources'].processes['bg_process'].is_alive()}")
 
     if working_mode !="":
         result ="OK"

@@ -28,7 +28,7 @@ def process_msg(src , data, shared_resources,api_clinet):
         # 1- send event to camera task to takign the picture
         send_event_process(camera_queue,SRC.BGR_MAS.value,BgCommands.TAKE_PICTURE_ITEM.value)
         # 1-1 do flush
-        # fill_color((255,255,255))
+        fill_color((255,255,255))
         #2-0: start the lidar
         lidar_controll(True)
         
@@ -82,10 +82,10 @@ def process_msg(src , data, shared_resources,api_clinet):
         
         # STOP LIDAR
         lidar_controll(False)
-
+        print("SOOOOSK -1")
         # call the api async
         async_api_call(api_clinet, "send_point_cloud", bg_queue, barcode)
-        
+        print("SOOOOSK -2")
 
     ####################################################################################################
     ##########################             END THE PROCESS            ##################################
@@ -114,13 +114,13 @@ def process_msg(src , data, shared_resources,api_clinet):
                     "weight": round(data["weight"],2),
                 }
                 # DO GREEN 
-                # fill_color((255,0,0))
+                fill_color((255,0,0))
                 send_socket_to_front_app(ws_queue, cmd="end_scan",data=[report_data])
             else:
                 print("lidar cannot get data ---->>> WE HAVE TO WAIE TILL THE IMAGE API GET RESPONSE")
         elif data["method_name"] == "send_image":
-            if data["pc_length"] <= 0: 
-                print("SAAAAAAAAAAAAAAAKKKKKKKKKKKKKKKKKKKKKIIIIIIIIIIIINEEEEEEEEEEEEEE")
+            print(f"SAAAAAAAAAAAAAAAKKKKKKKKKKKKKKKKKKKKKIIIIIIIIIIIINEEEEEEEEEEEEEE{data}")
+            if "pc_length" not in data:
                 print(f"image API RES: {data}")
                 report_data = {
                     "w": round(data["image_width"] ,2),
@@ -129,7 +129,7 @@ def process_msg(src , data, shared_resources,api_clinet):
                     "weight": round(data["weight"] ,2),
                 }
                 # DO GREEN 
-                # fill_color((255,0,0))
+                fill_color((255,0,0))
                 send_socket_to_front_app(ws_queue, cmd="end_scan",data=[report_data])
             else:
                 print(f"we ignore the image API but: {data}")
@@ -156,7 +156,7 @@ def process_msg(src , data, shared_resources,api_clinet):
         
         #3- STOP LIDAR
         lidar_controll(False)
-        # fill_color((0,0,0))
+        fill_color((0,0,0))
 
         # add a dummy time for take picture first then goes for lidar flow
         
@@ -165,7 +165,7 @@ def process_msg(src , data, shared_resources,api_clinet):
     elif src== SRC.API_MAS.value and data == BgCommands.END_PROCESS.value:
         print("STTTTTTTTTTTTTTTTOOOOOOOOOOOOPPPPPPPPPPPPPPPPP")
         shared_resources.working_mode.value = ""
-        # fill_color((0,0,0))
+        fill_color((0,0,0))
         # TODO: run api call to send supernova
 
 

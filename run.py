@@ -61,16 +61,19 @@ app.config['shared_resources'] = shared_resources
 
 if __name__ == '__main__':
     # bg PROCESS
-    process = Process(target=bg_controller, args=(shared_resources,))
-    process.start()
+    bg_process = Process(target=bg_controller, args=(shared_resources,))
+    shared_resources.processes["bg_process"]=bg_process
+    bg_process.start()
 
     # SERVER PROCESS
-    # process = Process(target=server_connection, args=(shared_resources,))
-    # process.start()
+    # srv_process = Process(target=server_connection, args=(shared_resources,))
+    # shared_resources.processes["srv_process"]=srv_process
+    # srv_process.start()
 
     #ESP32 PROCESS
-    process = Process(target=esp32_process, args=(shared_resources,))
-    process.start()
+    esp_process = Process(target=esp32_process, args=(shared_resources,))
+    shared_resources.processes["esp_process"]=esp_process
+    esp_process.start()
 
     # Run the Flask-SocketIO server
     socketio.run(app, host='0.0.0.0', port=5003, debug=True, use_reloader=False)

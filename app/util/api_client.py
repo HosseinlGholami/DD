@@ -32,11 +32,12 @@ class APIClient:
             return response.json()
         else:
             response = {
-                "pc_width": 0,
-                "pc_height": 0,
-                "pc_length": 0,
+                "pc_width": -1,
+                "pc_height": -1,
+                "pc_length": -1,
                 "weight": 0
             }
+            return response
 
     def send_point_cloud(self, barcode):
         print("===========send_point_cloud======================")
@@ -56,11 +57,12 @@ class APIClient:
             return response.json()
         else:
             response = {
-                "image_width": 0,
-                "image_height": 0,
-                "image_length": 0,
+                "pc_width": -1,
+                "pc_height": -1,
+                "pc_length": -1,
                 "weight": 0
             }
+            return response
 
     def camera_calibration(self):
         print("===========camera_calibration======================")
@@ -78,8 +80,13 @@ class APIClient:
         if response.status_code == 201:
             return response.json()
         else:
-            response.raise_for_status()
-
+            response = {
+                "pc_width": -1,
+                "pc_height": -1,
+                "pc_length": -1,
+                "weight": 0
+            }
+            return response
 
 
 if __name__ == "__main__":
