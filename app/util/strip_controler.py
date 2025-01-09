@@ -13,18 +13,25 @@ def fill_color(cl):
     pixels.show()
 
 
-def do_flush():
-    fill_color((255,255,255))
+def do_green(ctrl):
+    if ctrl:
+        fill_color((255,0,0))
+    else:
+        fill_color((0,0,0))
 
-def end_flush():
-    fill_color((0,0,0))
+
+def do_flush(ctrl):
+    if ctrl:
+        fill_color((255,255,255))
+    else:
+        fill_color((0,0,0))
 
 
 
 if __name__ == "__main__":
     while True:
         
-        fill_color((255,255,255))
+        fill_color((255,0,0))
         time.sleep(1)
         print("255,0,0")
 

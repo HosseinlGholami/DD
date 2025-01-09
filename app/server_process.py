@@ -54,7 +54,7 @@ def server_connection_reciver(server_queue:Queue, DD_BROKER_URL:str, DEVICE_ID:s
         msg = rabbitmq_client.parse_message(body)
         # print(f"server recived : {msg}")
         # send to event to esp32 sender queue
-        send_event_process(TOPIC,server_queue,SRC.SRV_RCV.value,msg)
+        # send_event_process(TOPIC,server_queue,SRC.SRV_RCV.value,msg)
         # ch.basic_publish(exchange='amq.topic',
         #              routing_key=".DD.server.{DEVICE_ID}",
         #              body=body)

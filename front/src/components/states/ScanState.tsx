@@ -12,7 +12,7 @@ import InfoCard from "../ui/InfoCard";
 // import InputBox from "../ui/Inputbox";
 import Skeleton from "../ui/Skeleton";
 import useStore from "../../store/store";
-import { startScan, stopScan } from "../../network/localApi";
+import { endProc, startScan, stopScan } from "../../network/localApi";
 import { useScanner } from "../../hooks/useScanner";
 import { LOCAL_API_URL } from "../../network/apiUrl";
 
@@ -30,6 +30,11 @@ const ScanState: React.FC = () => {
 
   useScanner(async (barcode: string) => {
     if (barcode === "FINISH") {
+      if (await endProc()) {
+        console.log("We are good!")
+      } else {
+        console.log("Not good!")
+      }
       useStore.setState({ currentState: "ProductScan" });
       setLoading(true);
     } else if (barcode === "PAUSE") {

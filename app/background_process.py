@@ -28,13 +28,13 @@ def process_msg(src , data, shared_resources,api_clinet):
         # 1- send event to camera task to takign the picture
         send_event_process(camera_queue,SRC.BGR_MAS.value,BgCommands.TAKE_PICTURE_ITEM.value)
         # 1-1 do flush
-        do_flush()
-
-        # add a dummy time for take picture first then goes for lidar flow
+        # fill_color((255,255,255))
         #2-0: start the lidar
         lidar_controll(True)
         
+        # add a dummy time for take picture first then goes for lidar flow
         time.sleep(1)
+
         # TODO START LIDAR
         # 2- send start command to esp32 STARTPROCESS COMMAND form api
         data_dict = create_data_dict(PacketType.DD_COMMAND_PACKET.value,CommandType.UART_START_SCAN_NRM.value,-1)
@@ -100,26 +100,27 @@ def process_msg(src , data, shared_resources,api_clinet):
 
     # got result from api
     elif src == SRC.API_CL_MAS.value:
-        print("SAAAAAAAAAAAAAAAKKKKKKKKKKKKKKKKKKKKKIIIIIIIIIIIINEEEEEEEEEEEEEE")
         if data["method_name"] == "send_point_cloud":
             print(f"point clousd: API RES: {data}")
             # it means it has correct response from the point cloud
             # so we ignore the camera data 
             # and send this response to front application
             if data["pc_length"] > 0: 
+                print("6894286SAAAAAAAAAAAAAAAKKKKKKKKKKKKKKKKKKKKKIIIIIIIIIIIINEEEEEEEEEEEEEE")
                 report_data = {
                     "w": round(data["pc_width"]   ,2),
                     "h": round(data["pc_height"]  ,2),
                     "l": round(data["pc_length"]  ,2),
                     "weight": round(data["weight"],2),
                 }
-                end_flush()
+                # DO GREEN 
+                # fill_color((255,0,0))
                 send_socket_to_front_app(ws_queue, cmd="end_scan",data=[report_data])
-                shared_resources.working_mode.value = ""
             else:
                 print("lidar cannot get data ---->>> WE HAVE TO WAIE TILL THE IMAGE API GET RESPONSE")
         elif data["method_name"] == "send_image":
-            if shared_resources.working_mode.value != "":
+            if data["pc_length"] <= 0: 
+                print("SAAAAAAAAAAAAAAAKKKKKKKKKKKKKKKKKKKKKIIIIIIIIIIIINEEEEEEEEEEEEEE")
                 print(f"image API RES: {data}")
                 report_data = {
                     "w": round(data["image_width"] ,2),
@@ -127,9 +128,9 @@ def process_msg(src , data, shared_resources,api_clinet):
                     "l": round(data["image_length"],2),
                     "weight": round(data["weight"] ,2),
                 }
-                end_flush()
+                # DO GREEN 
+                # fill_color((255,0,0))
                 send_socket_to_front_app(ws_queue, cmd="end_scan",data=[report_data])
-                shared_resources.working_mode.value = ""
             else:
                 print(f"we ignore the image API but: {data}")
 
@@ -143,18 +144,29 @@ def process_msg(src , data, shared_resources,api_clinet):
     #############################             STOP FLOW           ######################################
     ####################################################################################################
     elif src== SRC.API_MAS.value and data == BgCommands.STOP_PROCESS.value:
-        kill_the_process(shared_resources, "csv_process",csv_handler)   
-        # 1- send stop command to from api to kill the csv process
         print("SEND STOP COMMAND TO STOP THE CSV TASK")
+        # 1- send stop command to from api to kill the csv process
+        kill_the_process(shared_resources, "csv_process",csv_handler)   
+        
         shared_resources.working_mode.value = ""
 
+        # 2- send event to esp32 to restart task
         # data_dict = create_data_dict(PacketType.DD_COMMAND_PACKET.value,CommandType.UART_STOP_MOTOR.value,-1)
         # send_event_process(esp32_queue,src,data_dict)
         
-        #TODO: STOP LIDAR
+        #3- STOP LIDAR
+        lidar_controll(False)
+        # fill_color((0,0,0))
 
-        # 2- stop camera process to start taking picture
-        # TODO
+        # add a dummy time for take picture first then goes for lidar flow
+        
+        
+
+    elif src== SRC.API_MAS.value and data == BgCommands.END_PROCESS.value:
+        print("STTTTTTTTTTTTTTTTOOOOOOOOOOOOPPPPPPPPPPPPPPPPP")
+        shared_resources.working_mode.value = ""
+        # fill_color((0,0,0))
+        # TODO: run api call to send supernova
 
 
 

@@ -1,11 +1,12 @@
 import React from "react";
 import QRCodeCard from "../ui/QRCodeCard";
-import { ReactComponent as NightIcon } from "../../assets/icons/night.svg";
+import { ReactComponent as NoneIcon } from "../../assets/icons/none.svg";
 import { ReactComponent as ProductScanIcon } from "../../assets/icons/scan_product.svg";
 import Icon from "../ui/Icon";
 // import InputBox from "../ui/Inputbox";
 import useStore from "../../store/store";
 import { useScanner } from "../../hooks/useScanner";
+import { zerotare } from "../../network/localApi";
 
 const ProductScanState: React.FC = () => {
   //   const [serial, setSerial] = React.useState<string>("");
@@ -22,17 +23,23 @@ const ProductScanState: React.FC = () => {
   //     console.log(barcode);
   // }, []);
 
-  useScanner((barcode: string) => {
+  useScanner( async (barcode: string) => {
     if (barcode.length >= 5) {
       useStore.setState({ barcode: barcode, currentState: "StartScan" });
+    } else if (barcode === "ZERO") {
+      if (await zerotare()) {
+        console.log("Zero.")
+      } else {
+        console.log("NZero")
+      }
     }
   });
 
   return (
     <div className="tw-p-4 tw-grid tw-grid-rows-[auto,1fr] tw-justify-items-center">
       <div className="tw-grid tw-grid-cols-5 tw-gap-4 tw-justify-items-start">
-        <div className="tw-col-span-5" />
-        {/* <QRCodeCard qrValue="DARK" text="حالت شب" icon={NightIcon} /> */}
+        <div className="tw-col-span-4" />
+        <QRCodeCard qrValue="ZERO" text="صفر کردن ترازو" icon={NoneIcon} color="#DE3730" />
       </div>
 
       <div className="tw-mt-8 tw-flex tw-flex-col tw-items-center">

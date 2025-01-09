@@ -12,7 +12,7 @@ type QRCodeCardProps = {
 const QRCodeCard = ({ qrValue, text, icon, color = '#000' }: QRCodeCardProps) => {
     return (
         <div
-            className="tw-w-40 tw-h-16 tw-bg-background-surface-0 tw-rounded-tl-lg tw-rounded-br-none tw-rounded-tr-none tw-rounded-bl-none tw-flex tw-items-center tw-justify-between tw-p-4"
+            className="tw-w-48 tw-h-16 tw-bg-background-surface-0 tw-rounded-tl-lg tw-rounded-br-none tw-rounded-tr-none tw-rounded-bl-none tw-flex tw-items-center tw-justify-between tw-p-4"
         >
             <div className="tw-flex tw-items-center tw-gap-2">
                 <QRCode 

@@ -65,8 +65,8 @@ if __name__ == '__main__':
     process.start()
 
     # SERVER PROCESS
-    process = Process(target=server_connection, args=(shared_resources,))
-    process.start()
+    # process = Process(target=server_connection, args=(shared_resources,))
+    # process.start()
 
     #ESP32 PROCESS
     process = Process(target=esp32_process, args=(shared_resources,))

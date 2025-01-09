@@ -13,7 +13,7 @@ class BgCommands(Enum):
     STOP_PROCESS =1
     TAKE_PICTURE_ITEM=2
     TAKE_PICTURE_CALIB=3    
-
+    END_PROCESS=4
 
 class PacketType(Enum):
     DD_HEARTBEAT_PACKET=0 # DONE
@@ -42,6 +42,7 @@ class SRC(Enum):
     LDR_MAS=7
     CAM_MAS=8
     API_CL_MAS=9
+    
 
 
 class ReportAddress(Enum):

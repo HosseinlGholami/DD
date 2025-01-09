@@ -33,11 +33,10 @@ def stop_detection():
     working_mode = current_app.config['shared_resources'].working_mode.value
     if working_mode == "":
         return jsonify({"error": "we dont have any active jobs"}), 200
-    # we have to stop the process 
-    # 1- change the working mode
-    current_app.config['shared_resources'].working_mode.value = ""
-    # 2- send event to background job to stop the calculation process
-    bg_queue = current_app.config['bg_queue']
+    # we have to stop the process
+
+    # 1- send event to background job to stop the calculation process
+    bg_queue = current_app.config['shared_resources'].queues["bg_queue"]
     send_event_process(bg_queue,SRC.API_MAS.value,BgCommands.STOP_PROCESS.value)
 
     # Logic to stop the background process
@@ -49,6 +48,35 @@ def get_status():
     # Logic to return status or information from the process
     working_mode = current_app.config['shared_resources'].working_mode.value
     return jsonify({"status": f"Running --> {working_mode}"}), 200
+
+
+@api_blueprint.route('/end-proc', methods=['POST'])
+def end_proc():
+    # 0- Logic to return status or information from the process
+    working_mode = current_app.config['shared_resources'].working_mode.value
+    
+    # current_app.config['shared_resources'].working_mode.value = ""
+    
+    bg_queue = current_app.config['shared_resources'].queues["bg_queue"]
+    send_event_process(bg_queue,SRC.API_MAS.value,BgCommands.END_PROCESS.value)
+
+
+    print("SSSSSSSSSS")
+
+    if working_mode !="":
+        result ="OK"
+    else:
+        result ="NOK"
+
+    return jsonify({"result": f"{result}"}), 200
+
+
+@api_blueprint.route('/zerotare', methods=['POST'])
+def zero_tare():
+    #TODO: 
+    # call server api for zero tare
+    return jsonify({"result": f"ok"}), 200
+
 
 # API route to get the taken picture 
 @api_blueprint.route('/img-get', methods=['GET'])
