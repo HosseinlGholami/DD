@@ -66,7 +66,7 @@ def csv_maker_handler(data,ws_queue,bg_queue,point_cloud,last_position,sample_in
         # print(f" {last_position.value} ===")
         
     elif data['address'] == "LDR":
-        print(f" {last_position.value} ==>  {len(data['x'])} - {len(data['z'])} - {len(data['conf'])} ")        
+        # print(f" {last_position.value} ==>  {len(data['x'])} - {len(data['z'])} - {len(data['conf'])} ")        
         if last_position.value>0:
             new_point = []
             for index in range(len(data['x'])):

@@ -1,6 +1,7 @@
 from enum import Enum
 import gc
 from multiprocessing import Process
+import threading
 
 def send_socket_to_front_app(queue,cmd,data={}):
     meta = {'cmd':cmd,'data':data}  
@@ -40,6 +41,7 @@ class SRC(Enum):
     CSV_MAS=6
     LDR_MAS=7
     CAM_MAS=8
+    API_CL_MAS=9
 
 
 class ReportAddress(Enum):
@@ -89,3 +91,19 @@ def kill_the_process(shared_resources, process_name,task_handler):
         gc.collect()
 
     
+def run_api_call(api_client, method, queue, *args, **kwargs):
+    try:
+        response = method(*args, **kwargs)
+        data = {"src":SRC.API_CL_MAS.value,"data":response}
+        queue.put(data)
+    except Exception as e:
+        queue.put((False, str(e)))
+
+
+def async_api_call(api_client, method_name, queue, *args, **kwargs):
+    method = getattr(api_client, method_name, None)
+    if method is None:
+        raise ValueError(f"Method {method_name} does not exist on APIClient.")
+
+    thread = threading.Thread(target=run_api_call, args=(api_client, method, queue, *args), kwargs=kwargs)
+    thread.start()

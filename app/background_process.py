@@ -8,6 +8,7 @@ from app.util.util import *
 
 
 def process_msg(src , data, shared_resources,api_clinet):
+    bg_queue = shared_resources.queues["bg_queue"]
     csv_queue = shared_resources.queues["csv_queue"]
     camera_queue = shared_resources.queues["camera_queue"]
     esp32_queue = shared_resources.queues["esp32_queue"]
@@ -25,6 +26,7 @@ def process_msg(src , data, shared_resources,api_clinet):
         send_event_process(camera_queue,SRC.BGR_MAS.value,BgCommands.TAKE_PICTURE_ITEM.value)
         # add a dummy time for take picture first then goes for lidar flow
         time.sleep(1)
+        # TODO START LIDAR
         # 2- send start command to esp32 STARTPROCESS COMMAND form api
         data_dict = create_data_dict(PacketType.DD_COMMAND_PACKET.value,CommandType.UART_START_SCAN_NRM.value,-1)
         send_event_process(esp32_queue,src,data_dict)
@@ -36,12 +38,12 @@ def process_msg(src , data, shared_resources,api_clinet):
     elif src == SRC.CAM_MAS.value and data =="ITEM_RDY": 
         # pictue is taken we have to kill the process and call api
         send_socket_to_front_app(ws_queue, cmd="img_ready")
-        
-        pass
+        # call the api async
+        async_api_call(api_clinet, "send_image", bg_queue, barcode)
+
     elif src == SRC.CAM_MAS.value and data =="CALIB_RDY": 
         # pictue is taken we have to kill the process and call api
         pass
-
 
     ####################################################################################################
     #############################             LIDAR FLOW          ######################################
@@ -67,16 +69,10 @@ def process_msg(src , data, shared_resources,api_clinet):
     elif src== SRC.CSV_MAS.value:
         kill_the_process(shared_resources, "csv_process",csv_handler)   
         #TODO: STOP LIDAR
-        try:
-            a= api_clinet.send_point_cloud(f"{barcode}-{random.randint(100,999)}")
-            print(a)
-        except:
-            pass
-        print("========================")
-        
-        # clear the working mode
-        shared_resources.working_mode.value = ""
 
+        # call the api async
+        async_api_call(api_clinet, "send_point_cloud", bg_queue, barcode)
+        
 
     ####################################################################################################
     ##########################             END THE PROCESS            ##################################
@@ -87,7 +83,16 @@ def process_msg(src , data, shared_resources,api_clinet):
         print(f"ReportAddress.REPORT_PROCESS_END.value ===>data-raw{data}")
         # send_event_process(csv_queue,src,data)
         # send_socket_to_front_app(ws_queue, cmd="process_end")
+        # clear the working mode
+        shared_resources.working_mode.value = ""
 
+    # got result from api
+    elif src == SRC.API_CL_MAS.value:
+        print("======")
+        print(data)
+        print("======")
+        send_socket_to_front_app(ws_queue, cmd="api_res", data=data)
+    
 
     ####################################################################################################
     #############################             STOP FLOW           ######################################
