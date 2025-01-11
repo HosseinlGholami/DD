@@ -1,5 +1,6 @@
 from flask import Blueprint,request, send_file, jsonify , current_app
 from app.util.util import *
+import time
 
 # Create a Blueprint for the API
 api_blueprint = Blueprint('api', __name__)
@@ -57,11 +58,18 @@ def img_get():
     except:
         return jsonify({"error":"File not found"}),404
 
-# # TODO: IMAGE CALLIBRATION API
+# TODO: IMAGE CALLIBRATION API
 @api_blueprint.route('/img-calib', methods=['GET'])
 def img_calib():
+    shared_resources = current_app.config['shared_resources']
+    # start the process camera
+    start_the_process(shared_resources,"camera_process")
+    
+    time.sleep(3)
+    
+    # send event to take picrure 
+    camera_queue = shared_resources.queues["camera_queue"]
     # Logic to return status or information from the process
-    camera_queue = current_app.config['shared_resources'].queues["camera_queue"]
-    send_event_process(camera_queue,SRC.API_MAS.value,BgCommands.TAKE_PICTURE_ITEM.value)
+    send_event_process(camera_queue,SRC.API_MAS.value,BgCommands.TAKE_PICTURE_CALIB.value)
 
-    return jsonify({"status": f"Running --> {working_mode}"}), 200
+    return jsonify({"start calibration"}), 200

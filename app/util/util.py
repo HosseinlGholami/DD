@@ -91,9 +91,10 @@ def kill_the_process(shared_resources, process_name,task_handler):
         gc.collect()
 
     
-def run_api_call(api_client, method, queue, *args, **kwargs):
+def run_api_call(api_client,method_name ,method, queue, *args, **kwargs):
     try:
         response = method(*args, **kwargs)
+        response["method_name"]=method_name
         data = {"src":SRC.API_CL_MAS.value,"data":response}
         queue.put(data)
     except Exception as e:
@@ -105,5 +106,5 @@ def async_api_call(api_client, method_name, queue, *args, **kwargs):
     if method is None:
         raise ValueError(f"Method {method_name} does not exist on APIClient.")
 
-    thread = threading.Thread(target=run_api_call, args=(api_client, method, queue, *args), kwargs=kwargs)
+    thread = threading.Thread(target=run_api_call, args=(api_client, method_name ,method, queue, *args), kwargs=kwargs)
     thread.start()

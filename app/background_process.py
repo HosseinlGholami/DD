@@ -37,13 +37,20 @@ def process_msg(src , data, shared_resources,api_clinet):
     ####################################################################################################
     elif src == SRC.CAM_MAS.value and data =="ITEM_RDY": 
         # pictue is taken we have to kill the process and call api
+        # 1- send img_ready to fetch the image url form /img-get api
         send_socket_to_front_app(ws_queue, cmd="img_ready")
-        # call the api async
+        # 2- call the api async
         async_api_call(api_clinet, "send_image", bg_queue, barcode)
+        # 3- kill the camera process
+        kill_the_process(shared_resources, "camera_process",camera_handler)   
 
     elif src == SRC.CAM_MAS.value and data =="CALIB_RDY": 
         # pictue is taken we have to kill the process and call api
-        pass
+        # 1- api call async
+        async_api_call(api_clinet, "camera_calibration", bg_queue, barcode)
+        # 2- kill the camera process
+        kill_the_process(shared_resources, "camera_process",camera_handler)   
+
 
     ####################################################################################################
     #############################             LIDAR FLOW          ######################################
@@ -88,11 +95,15 @@ def process_msg(src , data, shared_resources,api_clinet):
 
     # got result from api
     elif src == SRC.API_CL_MAS.value:
-        print("======")
-        print(data)
-        print("======")
-        send_socket_to_front_app(ws_queue, cmd="api_res", data=data)
-    
+        if data["method_name"] == "send_image":
+            send_socket_to_front_app(ws_queue, cmd="send_image", data=data)
+        elif data["method_name"] == "send_point_cloud":
+            send_socket_to_front_app(ws_queue, cmd="send_point_cloud", data=data)
+        elif data["method_name"] == "camera_calibration":
+            print("callibration done ")
+        else:
+            print("GOT INVALID METHOD NAME")
+
 
     ####################################################################################################
     #############################             STOP FLOW           ######################################
